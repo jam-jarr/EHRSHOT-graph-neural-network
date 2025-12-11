@@ -13,7 +13,7 @@ table = full_drug_group
 
 df = pd.read_sql_query(
     f"""
-    SELECT person_id, drug_component_id, drug_name, COUNT(drug_component_id) FROM {table}
+    SELECT person_id, drug_component_id, drug_name, COUNT(drug_component_id), gender_concept_id, year_of_birth, race_concept_id FROM {table}
     WHERE drug_component_id != 0
     GROUP BY drug_component_id, person_id
     ORDER BY person_id

@@ -1,4 +1,3 @@
-import sqlite3
 from collections import defaultdict
 
 import pandas as pd
@@ -11,6 +10,8 @@ patients_to_meds = defaultdict(list)
 unique_medications = set()
 unique_patients = set()
 
+ablation = "onlyage"
+
 # Generate adjacency list
 for i in range(len(df)):
     row = df.iloc[i]
@@ -18,8 +19,21 @@ for i in range(len(df)):
     medication = int(row["drug_component_id"])
     patients_to_meds[patient].append(medication)
 
-    # node, node_label
-    unique_patients.add((patient, patient))
+    gender = row["gender_concept_id"]
+    age = row["year_of_birth"]
+    race = row["race_concept_id"]
+
+    concatfeature = f"{gender}_{age}_{race}"
+
+    match ablation:
+        case "concatfeature":
+            unique_patients.add((patient, concatfeature))
+        case "fullfeature":
+            unique_patients.add((patient, patient, gender, age, race))
+        case "nofeature":
+            unique_patients.add((patient, patient))
+        case "onlyage":
+            unique_patients.add((patient, age))
     med_name = row["drug_name"]
     unique_medications.add((medication, med_name))
 
@@ -28,7 +42,6 @@ for i in range(len(df)):
 #   ...
 # }
 
-print(patients_to_meds)
 
 edge_list = [[], []]
 # node_features = []
@@ -69,13 +82,10 @@ def pyg_data_to_edges_csv(data, filename="edges.csv"):
 nodes = []
 node_label = []
 node_type = []
+node_age = []
+node_gender = []
+node_race = []
 
-# for i in range(0, len(medicationdf)):
-#     med = medicationdf.iloc[i]
-#     drug_id = med["drug_component_id"]
-#     nodes.append(drug_id)
-#     drug_name = med["drug_name"]
-#     node_label.append(drug_name)
 
 # Append medications to node list
 for medid, med_name in unique_medications:
@@ -84,14 +94,51 @@ for medid, med_name in unique_medications:
     node_type.append("medication")
 
 # Append patients to node list
-# TODO: implement proper identifier
-for patientid, identifier in unique_patients:
+for p in unique_patients:
+    patientid = p[0]
     nodes.append(patientid)
-    node_label.append(identifier)
     node_type.append("patient")
 
+    match ablation:
+        case "concatfeature":
+            node_label.append(p[1])
+        case "fullfeature":
+            node_age = p[1]
+            node_gender = p[2]
+            node_race = p[3]
+        case "nofeature":
+            node_label.append(p[1])
+        case "onlyage":
+            node_label.append(p[1])
 
-node_data = {"id": nodes, "label": node_label, "type": node_type}
+match ablation:
+    case "concatfeature":
+        node_data = {"id": nodes, "label": node_label, "type": node_type}
+    case "fullfeature":
+        node_data = {
+            "id": nodes,
+            "type": node_type,
+            "age": node_age,
+            "gender": node_gender,
+            "race": node_race,
+        }
+    case "nofeature":
+        node_data = {"id": nodes, "label": node_label, "type": node_type}
+    case "onlyage":
+        node_data = {"id": nodes, "label": node_label, "type": node_type}
+
+
+if ablation != "fullfeature":
+    node_data = {"id": nodes, "label": node_label, "type": node_type}
+else:
+    node_data = {
+        "id": nodes,
+        "type": node_type,
+        "age": node_age,
+        "gender": node_gender,
+        "race": node_race,
+    }
+
 
 df = pd.DataFrame(node_data)
 
