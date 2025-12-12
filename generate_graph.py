@@ -29,7 +29,7 @@ for i in range(len(df)):
         case "concatfeature":
             unique_patients.add((patient, concatfeature))
         case "fullfeature":
-            unique_patients.add((patient, patient, gender, age, race))
+            unique_patients.add((patient, gender, age, race))
         case "nofeature":
             unique_patients.add((patient, patient))
         case "onlyage":
@@ -111,8 +111,8 @@ for p in unique_patients:
         case "concatfeature":
             node_label.append(p[1])
         case "fullfeature":
-            node_age.append(p[1])
-            node_gender.append(p[2])
+            node_gender.append(p[1])
+            node_age.append(p[2])
             node_race.append(p[3])
         case "nofeature":
             node_label.append(p[1])
