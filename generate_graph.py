@@ -10,7 +10,7 @@ patients_to_meds = defaultdict(list)
 unique_medications = set()
 unique_patients = set()
 
-ablation = "onlyage"
+ablation = "fullfeature"
 
 # Generate adjacency list
 for i in range(len(df)):
@@ -36,6 +36,9 @@ for i in range(len(df)):
             unique_patients.add((patient, age))
     med_name = row["drug_name"]
     unique_medications.add((medication, med_name))
+
+
+print(df)
 
 # patients_to_meds = {
 #   patient1 = { medicationA: 1, medicationB: 2, ... },
@@ -93,6 +96,11 @@ for medid, med_name in unique_medications:
     node_label.append(med_name)
     node_type.append("medication")
 
+    if ablation == "fullfeature":
+        node_age.append(0)
+        node_gender.append(0)
+        node_race.append(0)
+
 # Append patients to node list
 for p in unique_patients:
     patientid = p[0]
@@ -103,29 +111,29 @@ for p in unique_patients:
         case "concatfeature":
             node_label.append(p[1])
         case "fullfeature":
-            node_age = p[1]
-            node_gender = p[2]
-            node_race = p[3]
+            node_age.append(p[1])
+            node_gender.append(p[2])
+            node_race.append(p[3])
         case "nofeature":
             node_label.append(p[1])
         case "onlyage":
             node_label.append(p[1])
 
-match ablation:
-    case "concatfeature":
-        node_data = {"id": nodes, "label": node_label, "type": node_type}
-    case "fullfeature":
-        node_data = {
-            "id": nodes,
-            "type": node_type,
-            "age": node_age,
-            "gender": node_gender,
-            "race": node_race,
-        }
-    case "nofeature":
-        node_data = {"id": nodes, "label": node_label, "type": node_type}
-    case "onlyage":
-        node_data = {"id": nodes, "label": node_label, "type": node_type}
+# match ablation:
+#     case "concatfeature":
+#         node_data = {"id": nodes, "label": node_label, "type": node_type}
+#     case "fullfeature":
+#         node_data = {
+#             "id": nodes,
+#             "type": node_type,
+#             "age": node_age,
+#             "gender": node_gender,
+#             "race": node_race,
+#         }
+#     case "nofeature":
+#         node_data = {"id": nodes, "label": node_label, "type": node_type}
+#     case "onlyage":
+#         node_data = {"id": nodes, "label": node_label, "type": node_type}
 
 
 if ablation != "fullfeature":
